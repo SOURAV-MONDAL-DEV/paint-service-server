@@ -11,18 +11,16 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-console.log(process.env.DB_USER);
-console.log(process.env.DB_PASSWORD);
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.ihuwgkj.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run(){
 
     try{
         const serviceCollection = client.db('paintService').collection('services');
+        const reviewCollection = client.db('paintService').collection('reviews');
 
         app.get('/services', async(req, res) =>{
             const query = {}
@@ -38,6 +36,27 @@ async function run(){
             const service = await serviceCollection.findOne(query);
             res.send(service);
         })
+
+        app.get('/reviews', async(req, res) =>{
+            let query = {};
+            if(req.query.service){
+                query = {
+                    service: req.query.service
+                }
+            }
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+
+        })
+
+        app.post('/reviews', async(req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        })
+
+        
 
     }
     finally{
