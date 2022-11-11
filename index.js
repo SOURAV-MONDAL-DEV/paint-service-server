@@ -24,10 +24,17 @@ async function run(){
 
         app.get('/services', async(req, res) =>{
             const query = {}
-            const cursor = serviceCollection.find(query);
+            const cursor = serviceCollection.find(query).sort({$natural:-1});
             const services = await cursor.toArray();
             res.send(services);
 
+        })
+
+        app.post('/services', async(req, res) => {
+            const service = req.body;
+            console.log(service);
+            const result = await serviceCollection.insertOne(service);
+            res.send(result);
         })
 
         app.get('/services/:id', async(req, res)=>{
@@ -44,11 +51,18 @@ async function run(){
                     service: req.query.service
                 }
             }
-            const cursor = reviewCollection.find(query);
+            else if(req.query.email){
+                query = {
+                    email: req.query.email
+                }
+            }
+            const cursor = reviewCollection.find(query).sort({$natural:-1});
             const reviews = await cursor.toArray();
             res.send(reviews);
 
         })
+
+
 
         app.post('/reviews', async(req, res) => {
             const review = req.body;
